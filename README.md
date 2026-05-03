@@ -138,6 +138,60 @@ Every loan referral from CureWise arrives pre-qualified:
 
 ---
 
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Client["🖥️ Frontend — React 18 + TypeScript"]
+        S1[Step 1\nSymptom Input\n+ Voice]
+        S2[Step 2\nClinical Mapping\nResults]
+        S3[Step 3\nTreatment\nPathways]
+        S4[Step 4\nHospital\nSelection + Map]
+        S5[Step 5\nFinancial\nPlanning]
+        S1 --> S2 --> S3 --> S4 --> S5
+    end
+
+    subgraph Backend["⚙️ Backend — FastAPI + Python"]
+        D["/diagnosis/match\nLLM + ICD-10"]
+        C["/clinical/pathway\n3-tier engine"]
+        H["/hospitals/nearby\nPostGIS search"]
+        P["/procedures/estimate\nCGHS pricing"]
+    end
+
+    subgraph AI["🧠 AI Layer"]
+        G[Groq API\nLlama 3.3 70B]
+        N1[NLM ClinicalTables\nICD-10 Validation]
+        N2[NLM MedlinePlus\nCondition Summaries]
+    end
+
+    subgraph DB["🗄️ Database — Supabase PostgreSQL"]
+        H1[(Hospitals\n10,000+ records\nPostGIS)]
+        H2[(CGHS Procedures\n5,000+ rates)]
+        H3[(Users &\nProfiles)]
+    end
+
+    S2 -->|symptoms + age\n+ location| D
+    S3 -->|ICD-10 code| C
+    S4 -->|GPS coords\n+ specialty| H
+    S5 -->|cghs_code\n+ hospital tier| P
+
+    D -->|structured prompt| G
+    D -->|validate code| N1
+    C -->|condition context| N2
+    C -->|price steps| H2
+
+    H -->|spatial query| H1
+    P -->|rate lookup| H2
+    D & C & H & P -->|auth| H3
+
+    style Client fill:#1e3a5f,color:#fff
+    style Backend fill:#1a4731,color:#fff
+    style AI fill:#4a1942,color:#fff
+    style DB fill:#3d2b00,color:#fff
+```
+
+---
+
 ## Tech Stack
 
 ### Frontend
