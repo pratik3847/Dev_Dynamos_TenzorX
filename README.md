@@ -24,6 +24,8 @@
 
 ---
 
+## 🎬 Demo
+
 [![Watch the demo](https://img.youtube.com/vi/bKULo3JCca0/maxresdefault.jpg)](https://www.youtube.com/watch?v=bKULo3JCca0)
 
 ---
@@ -34,10 +36,10 @@
 
 | Step | Input | Output |
 |------|-------|--------|
-| **1 — Symptom Input** | "Fever 4 days, severe headache, pain behind eyes, body ache" + Diabetes selected | Budget ₹50,000 captured, comorbidity flagged, budget mismatch check passed |
-| **2 — AI Diagnosis** | Groq Llama 3.3 analyses query with location context (Mumbai) | Dengue A90 — 82% confidence · Malaria B50 — 38% · Typhoid A01 — 22% |
-| **3 — Treatment** | Outpatient pathway selected | 7 steps · ₹4,000–₹10,100 total · ⚠️ Diabetes HbA1c warning shown |
-| **4 — Hospital** | Mumbai, GPS search | KEM Hospital 3.2 km · Sion 5.1 km · NABH accredited options ranked |
+| **1 — Symptom Input** | "Fever 4 days, severe headache, pain behind eyes, body ache" + Diabetes selected | Budget ₹50,000 captured, comorbidity flagged |
+| **2 — AI Diagnosis** | Groq Llama 3.3 analyses query with Mumbai location context | Dengue A90 — 82% · Malaria B50 — 38% · Typhoid A01 — 22% |
+| **3 — Treatment** | Outpatient pathway selected | 7 steps · ₹4,000–₹10,100 · ⚠️ Diabetes HbA1c warning |
+| **4 — Hospital** | Mumbai, GPS search | KEM Hospital 3.2 km · Sion 5.1 km · NABH accredited |
 | **5 — Finance** | Budget ₹50,000 vs cost ₹10,100 | Within budget ✅ · EMI ₹673/mo · PDF exported |
 
 ---
@@ -202,7 +204,7 @@ CureWise/
 │   ├── cleaned_cghs_rates_full.csv
 │   └── final_hospital_directory.csv
 │
-├── screenshots/                # App screenshots for README
+├── screenshots/                # App screenshots
 └── public/logo.png
 ```
 
@@ -233,7 +235,7 @@ venv\Scripts\activate          # Windows
 pip install -r backend/requirements.txt
 ```
 
-Create `backend/.env` (see `.env.example` for reference):
+Create `backend/.env` (see `backend/.env.example` for reference):
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
@@ -286,7 +288,7 @@ Full interactive docs: `http://localhost:8000/docs`
 | Never a final diagnosis | LLM system prompt enforces this with strict rules |
 | Age-appropriate recommendations | <18 paediatric · 18–35 conservative preferred · 56+ anaesthesia risk · 70+ high surgical risk |
 | Comorbidity-specific warnings | Named reasons: *"Diabetes: HbA1c pre-op check"* — not generic text |
-| ICD-10 code accuracy | S-codes (trauma) never used for degenerative/idiopathic conditions |
+| ICD-10 code accuracy | S-codes never used for degenerative/idiopathic conditions |
 | Confidence transparency | Score shown on every diagnosis; <50% changes primary CTA |
 | Disclaimer on every screen | Not just first and last |
 | Data source attribution | CGHS 2023, ICMR, NLM cited |
