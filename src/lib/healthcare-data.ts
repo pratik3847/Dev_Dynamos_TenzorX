@@ -1,3 +1,8 @@
+// NOTE: The CONDITIONS and HOSPITALS arrays below are kept only as a last-resort
+// offline fallback. All live data (conditions via LLM+ICD-10, hospitals, procedures,
+// cost estimates) is fetched from the backend API in src/lib/api.ts.
+// Do NOT add new conditions or hospitals here — extend the backend instead.
+
 // Symptom → Condition mapping engine + treatment/hospital catalogs.
 // Demo-only data for the AI Healthcare Navigator.
 

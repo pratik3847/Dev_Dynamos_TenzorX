@@ -20,7 +20,8 @@ class NearbyRequest(BaseModel):
     specialty: Optional[str] = None
     tier: Optional[str] = None
     nabh_only: Optional[bool] = False
-    limit: Optional[int] = 20
+    hospital_type: Optional[str] = None  # "government" | "private" | "trust"
+    limit: Optional[int] = 30
 
 @router.get("/search")
 def search_hospitals(
@@ -30,6 +31,7 @@ def search_hospitals(
     specialty: Optional[str] = None,
     tier: Optional[str] = None,
     nabh_only: Optional[bool] = False,
+    hospital_type: Optional[str] = None,  # "government" | "private" | "trust"
     limit: int = 20,
     offset: int = 0,
     current_user: UserResponse = Depends(get_current_user),
@@ -59,15 +61,23 @@ def search_hospitals(
         query += " AND LOWER(hospital_name) ILIKE %s"
         params.append(f"%{name.lower()}%")
     if specialty:
-        query += " AND (LOWER(specialties) ILIKE %s OR LOWER(discipline) ILIKE %s OR LOWER(facilities) ILIKE %s)"
-        specialty_param = f"%{specialty.lower()}%"
-        params.extend([specialty_param, specialty_param, specialty_param])
+        # Broader match: specialties, discipline, facilities, care_type
+        query += """ AND (
+            LOWER(specialties) ILIKE %s OR LOWER(discipline) ILIKE %s
+            OR LOWER(facilities) ILIKE %s OR LOWER(care_type) ILIKE %s
+        )"""
+        sp = f"%{specialty.lower()}%"
+        params.extend([sp, sp, sp, sp])
     if tier:
         query += " AND tier = %s"
         params.append(tier)
     if nabh_only:
         query += " AND nabh_accredited = TRUE"
+    if hospital_type:
+        query += " AND LOWER(hospital_category) ILIKE %s"
+        params.append(f"%{hospital_type.lower()}%")
 
+    # Order: NABH first, then by beds (proxy for size/quality)
     query += " ORDER BY nabh_accredited DESC, total_beds DESC NULLS LAST LIMIT %s OFFSET %s"
     params.extend([limit, offset])
 
@@ -175,14 +185,20 @@ def search_hospitals_nearby(
     ]
 
     if payload.specialty:
-        query += " AND (LOWER(specialties) ILIKE %s OR LOWER(discipline) ILIKE %s)"
-        specialty_param = f"%{payload.specialty.lower()}%"
-        params.extend([specialty_param, specialty_param])
+        query += """ AND (
+            LOWER(specialties) ILIKE %s OR LOWER(discipline) ILIKE %s
+            OR LOWER(facilities) ILIKE %s OR LOWER(care_type) ILIKE %s
+        )"""
+        sp = f"%{payload.specialty.lower()}%"
+        params.extend([sp, sp, sp, sp])
     if payload.tier:
         query += " AND tier = %s"
         params.append(payload.tier)
     if payload.nabh_only:
         query += " AND nabh_accredited = TRUE"
+    if payload.hospital_type:
+        query += " AND LOWER(hospital_category) ILIKE %s"
+        params.append(f"%{payload.hospital_type.lower()}%")
 
     query += " ORDER BY distance_km ASC LIMIT %s"
     params.append(payload.limit)

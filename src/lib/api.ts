@@ -76,6 +76,9 @@ export interface UpdateProfilePayload {
 export interface DiagnosisMatchRequest {
   symptoms?: string;
   diagnosis?: string;
+  age?: number | null;
+  location?: string;
+  comorbidities?: string[];
 }
 
 export interface Icd10Match {
@@ -83,7 +86,15 @@ export interface Icd10Match {
   name: string;
 }
 
+export interface ConditionEntry {
+  name: string;
+  icd10: string;
+  confidence: number;
+  reasoning: string;
+}
+
 export interface DiagnosisMatchResponse {
+  // flat legacy fields
   condition_name?: string;
   specialty?: string;
   confidence?: number;
@@ -91,6 +102,17 @@ export interface DiagnosisMatchResponse {
   icd10?: Icd10Match;
   source?: string;
   warnings?: string[];
+  all_matches?: Icd10Match[];
+  reasoning?: string;
+  // enriched structured fields
+  primary_condition?: ConditionEntry;
+  differential_diagnoses?: ConditionEntry[];
+  key_features_detected?: string[];
+  missing_critical_information?: string[];
+  recommended_questions?: string[];
+  risk_level?: "low" | "moderate" | "high";
+  specialist_type?: string;
+  next_steps?: string[];
 }
 
 const buildError = async (res: Response) => {
@@ -161,6 +183,7 @@ export const matchDiagnosis = (payload: DiagnosisMatchRequest) =>
 export interface ClinicalMapRequest {
   symptoms: string;
   age?: number | null;
+  location?: string;
   comorbidities?: string[];
 }
 
@@ -198,24 +221,30 @@ export interface PathwayResponse {
 }
 
 export const mapSymptoms = async (token: string, payload: ClinicalMapRequest): Promise<ClinicalMapResponse> => {
-  const baseResponse = await matchDiagnosis({ symptoms: payload.symptoms });
-  
-  // Transform base response into the expected ClinicalMapResponse
-  const icd10_code = baseResponse.icd10?.code || "R69"; // Unknown if missing
-  const isEmergency = 
-    payload.symptoms.toLowerCase().includes("chest pain") || 
-    payload.symptoms.toLowerCase().includes("stroke") ||
-    payload.symptoms.toLowerCase().includes("emergency") ||
-    payload.symptoms.toLowerCase().includes("heart attack") ||
-    payload.symptoms.toLowerCase().includes("severe bleeding");
-    
+  const baseResponse = await matchDiagnosis({
+    symptoms: payload.symptoms,
+    age: payload.age,
+    location: payload.location,
+    comorbidities: payload.comorbidities,
+  });
+
+  const icd10_code = baseResponse.icd10?.code || "R69";
+
+  // Use risk_level from LLM if available, else fall back to keyword check
+  const emergencyKeywords = ["chest pain", "stroke", "emergency", "heart attack", "severe bleeding",
+    "unconscious", "difficulty breathing", "paralysis", "seizure", "crushing pain"];
+  const isEmergency =
+    baseResponse.risk_level === "high" ||
+    emergencyKeywords.some(kw => payload.symptoms.toLowerCase().includes(kw));
+
   return {
     ...baseResponse,
     icd10_code,
     emergency_flag: isEmergency,
-    reasoning: `Matched based on clinical guidelines for ${baseResponse.condition_name || "reported symptoms"}.`,
-    procedures: baseResponse.keywords || [],
-    all_matches: baseResponse.icd10 ? [baseResponse.icd10] : [],
+    reasoning: baseResponse.reasoning ||
+      `Matched based on clinical guidelines for ${baseResponse.condition_name || "reported symptoms"}.`,
+    procedures: baseResponse.key_features_detected || baseResponse.keywords || [],
+    all_matches: baseResponse.all_matches || (baseResponse.icd10 ? [baseResponse.icd10] : []),
   };
 };
 
@@ -280,6 +309,10 @@ export interface HospitalResult {
   num_doctors: number | null;
   emergency_services: string | null;
   tariff_range: string | null;
+  empanelment: string | null;
+  established_year: number | null;
+  ambulance_phone: string | null;
+  bloodbank_phone: string | null;
   lat: number | null;
   lng: number | null;
   tier: "budget" | "mid_tier" | "premium";
@@ -419,4 +452,15 @@ export const estimateCost = (
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(params),
   });
+
+// Fetch common condition suggestions from the backend for a given symptom query.
+// Falls back to an empty array on error so callers can use local data as backup.
+export const getConditionSuggestions = async (symptoms: string): Promise<DiagnosisMatchResponse[]> => {
+  try {
+    const result = await matchDiagnosis({ symptoms });
+    return result ? [result] : [];
+  } catch {
+    return [];
+  }
+};
 

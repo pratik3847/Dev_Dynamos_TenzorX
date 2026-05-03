@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Stethoscope, Heart, Pill, Check, Activity, Brain, Syringe, Clock, ShieldAlert, Loader2, IndianRupee } from "lucide-react";
+import { Stethoscope, Heart, Pill, Check, Activity, Brain, Syringe, Clock, ShieldAlert, Loader2, IndianRupee, AlertTriangle, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { getPathway, PathwayOption } from "@/lib/api";
@@ -13,6 +13,9 @@ interface Props {
   icd10_code: string;
   condition_name: string;
   procedures: string[];
+  age?: number | null;
+  comorbidities?: string[];
+  budget?: string;
   onNext: (treatment: PathwayOption) => void;
 }
 
@@ -20,11 +23,37 @@ const formatINR = (amount: number) => {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
 };
 
-export const StepTreatment = ({ icd10_code, condition_name, procedures, onNext }: Props) => {
+export const StepTreatment = ({ icd10_code, condition_name, procedures, age, comorbidities = [], budget, onNext }: Props) => {
   const { token } = useAuth();
   const [pathways, setPathways] = useState<PathwayOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
+
+  const budgetNum = parseInt((budget || "").replace(/\D/g, "") || "0");
+
+  // Age-appropriateness matrix
+  const getAgeWarning = (pathway: PathwayOption): string | null => {
+    if (!age) return null;
+    if (pathway.type === "surgical") {
+      if (age < 18) return "⚠️ Paediatric specialist required before any surgical pathway.";
+      if (age < 36) return "ℹ️ Conservative management is preferred first-line for patients under 36.";
+      if (age >= 70) return "⚠️ High surgical risk at age 70+. Geriatric assessment recommended before surgery.";
+      if (age >= 56 && comorbidities.length > 0) return "⚠️ Anaesthesia risk elevated due to existing conditions. Physician clearance required.";
+    }
+    return null;
+  };
+
+  // Comorbidity surgical risk flags
+  const getSurgicalRiskFlags = (pathway: PathwayOption): string[] => {
+    if (pathway.type !== "surgical") return [];
+    const flags: string[] = [];
+    if (comorbidities.includes("diabetes")) flags.push("Diabetes: HbA1c check required pre-op; wound healing risk");
+    if (comorbidities.includes("hypertension")) flags.push("Hypertension: BP must be controlled pre-op; anaesthesia risk");
+    if (comorbidities.includes("cardiac")) flags.push("Cardiac condition: Cardiology clearance required before surgery");
+    if (comorbidities.includes("ckd")) flags.push("CKD: Avoid contrast dye imaging; NSAID contraindicated");
+    if (comorbidities.includes("obesity")) flags.push("Obesity: DVT prophylaxis required; dosing adjustment needed");
+    return flags;
+  };
 
   useEffect(() => {
     const fetchPathways = async () => {
@@ -136,6 +165,28 @@ export const StepTreatment = ({ icd10_code, condition_name, procedures, onNext }
               </div>
               
               <h3 className="font-bold text-lg text-foreground leading-tight">{p.name}</h3>
+
+              {/* Budget mismatch warning */}
+              {budgetNum > 0 && budgetNum < p.total_cost_low && (
+                <div className="mt-2 p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-start gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <span>Your budget (₹{budgetNum.toLocaleString("en-IN")}) is below the minimum cost of this pathway. Consider government hospitals or EMI financing.</span>
+                </div>
+              )}
+
+              {/* Age warning */}
+              {(() => { const w = getAgeWarning(p); return w ? (
+                <div className="mt-2 p-2.5 rounded-xl bg-warning-soft border border-warning/20 text-xs text-warning-foreground flex items-start gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" /><span>{w}</span>
+                </div>
+              ) : null; })()}
+
+              {/* Comorbidity surgical risk flags */}
+              {getSurgicalRiskFlags(p).map(flag => (
+                <div key={flag} className="mt-1.5 p-2 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-800 flex items-start gap-1.5">
+                  <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5" /><span>{flag}</span>
+                </div>
+              ))}
               
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-sm text-muted-foreground font-medium">Est. Range:</span>
@@ -206,6 +257,13 @@ export const StepTreatment = ({ icd10_code, condition_name, procedures, onNext }
         >
           Select Hospital for this Pathway →
         </Button>
+      </div>
+
+      <div className="flex items-start gap-2 p-3.5 rounded-2xl bg-warning-soft border border-warning/30">
+        <AlertCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+        <p className="text-xs text-foreground/80">
+          <strong>Disclaimer:</strong> Treatment pathways are AI-generated based on CGHS guidelines and clinical evidence. Cost ranges are estimates only. Always consult a qualified physician before starting any treatment. Source: CGHS Rate Schedule 2023, ICMR guidelines.
+        </p>
       </div>
     </div>
   );

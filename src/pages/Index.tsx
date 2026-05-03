@@ -6,7 +6,7 @@ import { StepHospitals } from "@/components/healthcare/StepHospitals";
 import { StepFinance } from "@/components/healthcare/StepFinance";
 import { NavbarHospitalSearch } from "@/components/NavbarHospitalSearch";
 import { Button } from "@/components/ui/button";
-import { HeartPulse, ArrowLeft, ShieldCheck, LogOut, UserRound, Loader2 } from "lucide-react";
+import { ArrowLeft, ShieldCheck, LogOut, UserRound, Loader2 } from "lucide-react";
 import { mapSymptoms, ClinicalMapResponse, PathwayOption, HospitalResult, CostEstimate } from "@/lib/api";
 import { GeoCoords } from "@/hooks/use-geolocation";
 import { useAuth } from "@/context/AuthContext";
@@ -133,6 +133,7 @@ const Index = () => {
       const result = await mapSymptoms(token, {
         symptoms: d.symptoms,
         age: newState.age,
+        location: newState.city,
         comorbidities: newState.comorbidities
       });
       
@@ -177,12 +178,14 @@ const Index = () => {
         <div className="container mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                <HeartPulse className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="CureWise"
+                className="h-10 w-10 rounded-2xl object-cover shadow-glow"
+              />
               <div className="hidden sm:block">
                 <h1 className="font-bold text-base sm:text-lg leading-tight tracking-tight">
-                  CareCompass <span className="bg-gradient-primary bg-clip-text text-transparent">AI</span>
+                  CureWise <span className="bg-gradient-primary bg-clip-text text-transparent">AI</span>
                 </h1>
                 <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Healthcare Navigator</p>
               </div>
@@ -304,6 +307,9 @@ const Index = () => {
             icd10_code={flowState.clinical_result.icd10_code}
             condition_name={flowState.clinical_result.condition_name || "Unknown Condition"}
             procedures={flowState.clinical_result.procedures}
+            age={flowState.age}
+            comorbidities={flowState.comorbidities}
+            budget={flowState.budget_pref}
             onNext={(t) => {
               setFlowState(prev => ({ ...prev, selected_pathway: t }));
               setStep(4);
@@ -329,6 +335,8 @@ const Index = () => {
             selected_pathway={flowState.selected_pathway} 
             cost_estimate={flowState.cost_estimate}
             budget_pref={flowState.budget_pref}
+            age={flowState.age}
+            comorbidities={flowState.comorbidities}
             onRestart={restart} 
             onEstimate={(est) => setFlowState(prev => ({ ...prev, cost_estimate: est }))}
           />
@@ -337,7 +345,7 @@ const Index = () => {
 
       <footer className="border-t border-border/60 bg-card/40 py-6">
         <div className="container mx-auto px-4 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} CareCompass AI · Built for transparent, accessible healthcare ·{" "}
+          © {new Date().getFullYear()} CureWise AI · Built for transparent, accessible healthcare ·{" "}
           <span className="text-foreground/70">Not a substitute for medical advice.</span>
         </div>
       </footer>

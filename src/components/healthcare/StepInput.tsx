@@ -222,6 +222,28 @@ export const StepInput = ({ onNext, initial, onCoords, coords }: Props) => {
   const handleSubmit = () => {
     if (!symptoms.trim() && !diagnosis.trim()) return;
     if (speech.listening) speech.stop();
+
+    // Budget mismatch check — minimum treatment cost heuristics
+    const budgetNum = parseInt(budget.replace(/\D/g, "") || "0");
+    const MIN_TREATMENT_COSTS: Record<string, number> = {
+      surgery: 50000, cardiac: 130000, ortho: 50000, cancer: 100000,
+    };
+    const sympLower = (symptoms + " " + (diagnosis || "")).toLowerCase();
+    let minCost = 3000; // default: basic consultation
+    if (sympLower.match(/surgery|replacement|bypass|angioplasty|transplant/)) minCost = MIN_TREATMENT_COSTS.surgery;
+    else if (sympLower.match(/heart|cardiac|chest pain|angina/)) minCost = MIN_TREATMENT_COSTS.cardiac;
+    else if (sympLower.match(/knee|hip|spine|ortho/)) minCost = MIN_TREATMENT_COSTS.ortho;
+    else if (sympLower.match(/cancer|tumou?r|oncology/)) minCost = MIN_TREATMENT_COSTS.cancer;
+
+    if (budgetNum > 0 && budgetNum < minCost * 0.3) {
+      toast({
+        title: "Budget may be insufficient",
+        description: `Your budget of ₹${budgetNum.toLocaleString("en-IN")} is below 30% of the minimum estimated cost (₹${minCost.toLocaleString("en-IN")}) for the likely treatment. Consider government hospitals or EMI options.`,
+        variant: "destructive",
+      });
+      // Don't block — warn and proceed
+    }
+
     setLoading(true);
     setTimeout(() => onNext({ symptoms, diagnosis, age, budget, location, comorbidities, state: selectedState, district: selectedDistrict }, coords ?? null), 700);
   };
@@ -321,7 +343,9 @@ export const StepInput = ({ onNext, initial, onCoords, coords }: Props) => {
             onChange={(e) => setDiagnosis(e.target.value)}
             className="rounded-xl h-11"
           />
-          <p className="text-[11px] text-muted-foreground">We'll reconcile it with your symptoms.</p>
+          <p className="text-[11px] text-muted-foreground">
+            If symptoms suggest a different condition, we'll flag both options and let you choose.
+          </p>
         </div>
 
         <div className="mt-5">

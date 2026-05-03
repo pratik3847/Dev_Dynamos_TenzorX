@@ -16,24 +16,30 @@ interface Props {
   onNext: (hospital: HospitalResult) => void;
 }
 
-// Map ICD-10 prefix to common hospital specialties
+// Map ICD-10 prefix to hospital specialty search term
 const mapIcdToSpecialty = (code: string): string => {
-  const prefix = code.charAt(0).toUpperCase();
-  switch (prefix) {
-    case 'I': return 'Cardiology';
-    case 'M': return 'Orthopaedics';
-    case 'K': return 'Gastroenterology';
-    case 'N': return 'Urology'; // or Nephrology/Gynaecology
-    case 'H': return 'Ophthalmology';
-    case 'E': return 'Endocrinology';
-    case 'G': return 'Neurology';
-    case 'J': return 'Pulmonology';
-    case 'O': return 'Obstetrics';
-    case 'C': return 'Oncology';
-    case 'F': return 'Psychiatry';
-    case 'L': return 'Dermatology';
-    default: return 'General Medicine';
-  }
+  const prefix3 = code.substring(0, 3).toUpperCase();
+  const prefix1 = code.charAt(0).toUpperCase();
+
+  // Infectious diseases → General Medicine (not a narrow specialty)
+  if (["A", "B"].includes(prefix1)) return "General Medicine";
+  // Specific ICD-3 overrides
+  const map3: Record<string, string> = {
+    I20: "Cardiology", I21: "Cardiology", I25: "Cardiology", I50: "Cardiology",
+    M17: "Orthopaedics", M16: "Orthopaedics", M54: "Orthopaedics",
+    K35: "General Surgery", K40: "General Surgery", K80: "Gastroenterology",
+    N20: "Urology", G43: "Neurology", J18: "Pulmonology", J45: "Pulmonology",
+    E11: "Endocrinology", E05: "Endocrinology", E03: "Endocrinology",
+  };
+  if (map3[prefix3]) return map3[prefix3];
+
+  const map1: Record<string, string> = {
+    I: "Cardiology", M: "Orthopaedics", K: "Gastroenterology",
+    N: "Urology", H: "Ophthalmology", E: "Endocrinology",
+    G: "Neurology", J: "Pulmonology", O: "Obstetrics",
+    C: "Oncology", F: "Psychiatry", L: "Dermatology",
+  };
+  return map1[prefix1] || "General Medicine";
 };
 
 export const StepHospitals = ({ icd10_code, condition_name, selected_pathway, city, coords, onNext }: Props) => {
@@ -57,23 +63,44 @@ export const StepHospitals = ({ icd10_code, condition_name, selected_pathway, ci
       setError(null);
       try {
         let results: HospitalResult[] = [];
+
         if (userLocation) {
+          // GPS-based: search within 50km, no specialty filter for infectious diseases
           results = await searchHospitalsNearby(token, {
             lat: userLocation.lat,
             lng: userLocation.lng,
             radius_km: 50,
             specialty,
-            limit: 30
+            limit: 40,
           });
-        } else if (user?.district || user?.city || city) {
-          results = await searchHospitals(token, {
-            district: user?.district || city || undefined,
-            specialty,
-            limit: 30
-          });
+          // If too few results, widen to 100km without specialty filter
+          if (results.length < 5) {
+            results = await searchHospitalsNearby(token, {
+              lat: userLocation.lat,
+              lng: userLocation.lng,
+              radius_km: 100,
+              limit: 40,
+            });
+          }
         } else {
-          results = await searchHospitals(token, { limit: 30, specialty });
+          const locationParam = user?.district || city || undefined;
+          results = await searchHospitals(token, {
+            district: locationParam,
+            specialty,
+            limit: 40,
+          });
+          // If too few, search by state or drop specialty filter
+          if (results.length < 5 && locationParam) {
+            results = await searchHospitals(token, {
+              district: locationParam,
+              limit: 40,
+            });
+          }
+          if (results.length < 5) {
+            results = await searchHospitals(token, { specialty, limit: 40 });
+          }
         }
+
         if (isMounted) setHospitals(results);
       } catch (err: any) {
         if (isMounted) setError("Failed to fetch hospitals.");
@@ -88,28 +115,47 @@ export const StepHospitals = ({ icd10_code, condition_name, selected_pathway, ci
 
   const enhanced = useMemo(() => {
     return hospitals.map(h => {
+      // Specialty relevance
       const spec = specialty.toLowerCase();
-      const text = `${h.specialties || ""} ${h.facilities || ""} ${h.discipline || ""}`.toLowerCase();
-      const cs = text.includes(spec) ? 8 : 5;
-      const ns = h.nabh_accredited ? 10 : 3;
+      const text = `${h.specialties || ""} ${h.facilities || ""} ${h.discipline || ""} ${h.care_type || ""}`.toLowerCase();
+      const cs = text.includes(spec) ? 10 : 6;
+
+      // Accreditation quality
+      const accred = (h.accreditation || "").toLowerCase();
+      const ns = h.nabh_accredited ? 10
+        : accred.includes("jci") ? 10
+        : accred.includes("nabh") ? 9
+        : accred.includes("iso") ? 7 : 4;
+
+      // Size proxy
       const beds = h.total_beds || 0;
-      const bs = beds > 200 ? 9 : beds > 100 ? 7 : beds > 50 ? 5 : 3;
-      
+      const bs = beds > 500 ? 10 : beds > 200 ? 8 : beds > 100 ? 6 : beds > 50 ? 4 : 3;
+
+      // Distance
       let km = h.distance_km;
       if (km == null && userLocation && h.lat && h.lng) {
         km = distanceKm(userLocation, { lat: h.lat, lng: h.lng });
       }
-      
-      const ds = km == null ? 5 : km < 5 ? 10 : km < 10 ? 8 : km < 20 ? 6 : km < 40 ? 4 : 2;
-      const ts = h.tier === "premium" ? 9 : h.tier === "mid_tier" ? 7 : 5;
-      
-      const score = (cs * 0.3) + (ns * 0.2) + (bs * 0.2) + (ds * 0.15) + (ts * 0.15);
+      const ds = km == null ? 5 : km < 3 ? 10 : km < 8 ? 8 : km < 15 ? 6 : km < 30 ? 4 : 2;
 
-      return {
-        ...h,
-        score,
-        distanceKm: km,
-      };
+      // Tier
+      const ts = h.tier === "premium" ? 9 : h.tier === "mid_tier" ? 7 : 5;
+
+      // Emergency services
+      const es = h.emergency_services ? 8 : 5;
+
+      // Composite score (0–10)
+      const score = (cs * 0.25) + (ns * 0.25) + (bs * 0.15) + (ds * 0.15) + (ts * 0.10) + (es * 0.10);
+
+      // Derive hospital type label from category
+      const cat = (h.hospital_category || "").toLowerCase();
+      const hospitalType = cat.includes("gov") || cat.includes("public") || cat.includes("esic") || cat.includes("aiims") || cat.includes("central") ? "Government"
+        : cat.includes("trust") || cat.includes("charitable") || cat.includes("mission") ? "Trust / Charitable"
+        : cat.includes("private") ? "Private"
+        : h.tier === "budget" ? "Government / Budget"
+        : "Private";
+
+      return { ...h, score, distanceKm: km, hospitalType };
     });
   }, [hospitals, specialty, userLocation]);
 
