@@ -1,21 +1,21 @@
 <div align="center">
 
-<img src="public/favicon.ico" width="64" height="64" alt="CareCompass AI" />
+<img src="public/logo.png" width="120" alt="CureWise AI" />
 
-# CareCompass AI
+# CureWise AI
 
 ### AI-Powered Healthcare Navigator for Indian Patients
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat&logo=supabase)](https://supabase.com)
-[![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.3-F55036?style=flat)](https://groq.com)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat)](LICENSE)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Groq](https://img.shields.io/badge/Groq_Llama_3.3-F55036?style=for-the-badge)](https://groq.com)
 
-**CareCompass AI** bridges the gap between patients and quality healthcare in India — from symptom input to hospital selection, treatment planning, and financial guidance — all in one intelligent, transparent flow.
+> **CureWise AI** bridges the gap between patients and quality healthcare in India — from symptom input to hospital selection, treatment planning, and financial guidance — all in one intelligent, transparent flow.
 
-[Live Demo](#) · [Report Bug](https://github.com/pratik3847/Dev_Dynamos_TenzorX/issues) · [Request Feature](https://github.com/pratik3847/Dev_Dynamos_TenzorX/issues)
+**Built for TenzorX Hackathon by Team Dev Dynamos**
 
 </div>
 
@@ -26,57 +26,62 @@
 Indian patients face three critical barriers when seeking healthcare:
 
 - **Information asymmetry** — no reliable way to understand what treatment they need or what it costs
-- **Hospital selection paralysis** — thousands of hospitals with no transparent quality or cost data
+- **Hospital selection paralysis** — thousands of hospitals with no transparent quality or cost data  
 - **Financial shock** — unexpected bills with no planning tools or financing guidance
 
-CareCompass AI solves all three in a single guided flow.
+**CureWise AI solves all three in a single guided 5-step flow.**
 
 ---
 
-## What It Does
+## Demo Flow
 
 ```
-Symptoms → AI Diagnosis → Treatment Pathways → Hospital Selection → Financial Planning
+Symptoms  →  AI Diagnosis  →  Treatment Pathways  →  Hospital Selection  →  Financial Planning
+   1               2                  3                      4                      5
 ```
 
-| Step | What Happens |
-|------|-------------|
-| **1. Symptom Input** | Patient describes symptoms in plain language or via voice. Age, location, budget, and existing conditions are captured. |
-| **2. Clinical Mapping** | LLM (Llama 3.3 via Groq) maps symptoms to ICD-10 codes with confidence scores, differential diagnoses, missing information flags, and recommended next steps. |
-| **3. Treatment Pathways** | Evidence-based pathways generated from CGHS rate data + LLM clinical knowledge. Each step is individually priced. Age and comorbidity warnings shown. |
-| **4. Hospital Selection** | Real hospitals from a national database, filtered by location/GPS, specialty, tier (Govt/Private/Trust), NABH accreditation, and distance. |
-| **5. Financial Planning** | Itemised cost estimate derived from the chosen pathway and hospital tier. EMI calculator, insurance coverage input, finance partner directory, and PDF export. |
+| Step | Screen | What Happens |
+|------|--------|-------------|
+| 1 | **Symptom Input** | Patient describes symptoms in plain language or via voice. Age, location, budget, and existing conditions captured. Budget mismatch warning shown if budget < 30% of likely treatment cost. |
+| 2 | **Clinical Mapping** | LLM maps symptoms to ICD-10 codes with confidence scores, differential diagnoses, missing info flags, comorbidity-specific questions, and next steps. |
+| 3 | **Treatment Pathways** | Evidence-based pathways from CGHS data + LLM. Each step individually priced. Age-appropriateness and comorbidity surgical risk warnings shown. |
+| 4 | **Hospital Selection** | Real hospitals filtered by GPS/location, specialty, tier (Govt/Private/Trust), NABH accreditation, and distance. Interactive map view. |
+| 5 | **Financial Planning** | Itemised cost estimate from chosen pathway + hospital tier. EMI calculator, insurance coverage, 6 finance partners, PDF export. |
 
 ---
 
 ## Key Features
 
-### Clinical Intelligence
-- **LLM-powered diagnosis** using Groq's Llama 3.3 70B with structured clinical prompts
-- **ICD-10 code mapping** via NLM ClinicalTables API (free, no key required)
+### 🧠 Clinical Intelligence
+- LLM-powered diagnosis using **Groq Llama 3.3 70B** with structured clinical prompts
+- **ICD-10 code mapping** via NLM ClinicalTables API
 - **Differential diagnoses** with individual confidence scores and clinical reasoning
-- **Critical symptom weighting** — dengue detection from retro-orbital pain, endemic region boosting, cardiac vs GERD differentiation
+- **Critical symptom weighting** — dengue from retro-orbital pain, endemic region boosting, cardiac vs GERD differentiation
 - **Age-appropriateness matrix** — surgical pathways flagged for patients <18, >70, or with comorbidities
-- **Comorbidity flags** — named risk reasons: diabetes → wound healing, CKD → contrast dye contraindication, cardiac → clearance required
+- **Named comorbidity flags** — diabetes → wound healing risk, CKD → contrast dye contraindication, cardiac → clearance required
 
-### Treatment Pathways
-- **30+ static pathways** for common Indian conditions (dengue, typhoid, malaria, diabetes, pneumonia, asthma, cardiac, orthopaedic, etc.) with verified CGHS 2023 rates
+### 💊 Treatment Pathways
+- **30+ static pathways** for common Indian conditions with verified CGHS 2023 rates
+  - Dengue (outpatient + inpatient + haemorrhagic), Typhoid, Malaria
+  - Diabetes, Hypo/Hyperthyroidism, Pneumonia, Asthma, GERD, UTI, Migraine
+  - Cardiac (Hypertension, Angina, MI, Heart Failure), Orthopaedic (TKR, THR, Back Pain)
+  - General Surgery (Appendicitis, Gallstones, Hernia), Urology (Kidney Stones)
 - **LLM-generated pathways** for any ICD-10 code not in the static cache
 - **CGHS DB pricing** — each step looked up against the national procedure rate database
-- **NLM MedlinePlus integration** — free condition summaries for LLM context
+- **NLM MedlinePlus** integration for condition context
 
-### Hospital Directory
-- **National hospital database** with 10,000+ facilities
+### 🏥 Hospital Directory
+- National hospital database with **10,000+ facilities**
 - **GPS-based nearby search** using PostGIS spatial queries
 - **Government / Private / Trust / NGO** classification with colour-coded badges
 - **NABH, JCI, ISO, NABL** accreditation badges from real DB data
 - **Composite match score** — specialty relevance, accreditation, bed count, distance, emergency services
 - **CGHS/PMJAY empanelment** flags for government scheme eligibility
 
-### Financial Planning
-- **Pathway-derived cost estimates** — totals computed from actual treatment steps, not generic formulas
-- **Hospital tier adjustment** — budget (×1.0), mid-tier (×1.3), premium (×1.8), NABH premium (×1.15)
-- **Named contingency buffer** — explicitly states which comorbidity adds which cost (e.g. "diabetes: wound healing risk")
+### 💰 Financial Planning
+- **Pathway-derived cost estimates** — totals computed from actual treatment steps
+- **Hospital tier adjustment** — budget (×1.0), mid-tier (×1.3), premium (×1.8), NABH (×1.15)
+- **Named contingency buffer** — explicitly states which comorbidity adds which cost
 - **EMI calculator** — 0% promo or custom interest rate, down payment slider, tenure selection
 - **Insurance coverage** — enter coverage amount, see out-of-pocket instantly
 - **6 verified finance partners** — Bajaj Finserv, LazyPay, KreditBee, Arogya Finance, HDFC Bank, CASHe
@@ -96,7 +101,6 @@ Symptoms → AI Diagnosis → Treatment Pathways → Hospital Selection → Fina
 | React Leaflet | Interactive hospital map |
 | TanStack Query | Server state management |
 | React Hook Form + Zod | Form validation |
-| Sonner | Toast notifications |
 | Web Speech API | Voice symptom input |
 
 ### Backend
@@ -109,26 +113,25 @@ Symptoms → AI Diagnosis → Treatment Pathways → Hospital Selection → Fina
 | httpx | Async HTTP client |
 | python-jose + passlib | JWT authentication |
 
-### AI & Data Sources
-| Source | What It Provides | Cost |
-|--------|-----------------|------|
-| Groq API (Llama 3.3 70B) | Clinical diagnosis, treatment pathway generation | Free tier |
-| NLM ClinicalTables API | ICD-10-CM code search and validation | Free, no key |
-| NLM MedlinePlus Connect | Condition summaries for LLM context | Free, no key |
-| CGHS Rate Schedule 2023 | Official Indian government procedure costs | Public data |
-| National Hospital Directory | Hospital data with accreditation and location | Public data |
+### AI & Free Data Sources
+| Source | What It Provides |
+|--------|-----------------|
+| Groq API (Llama 3.3 70B) | Clinical diagnosis + treatment pathway generation |
+| NLM ClinicalTables API | ICD-10-CM code search and validation — free, no key |
+| NLM MedlinePlus Connect | Condition summaries for LLM context — free, no key |
+| CGHS Rate Schedule 2023 | Official Indian government procedure costs |
+| National Hospital Directory | Hospital data with accreditation and location |
 
 ---
 
 ## Project Structure
 
 ```
-Dev_Dynamos_TenzorX/
+CureWise/
 ├── backend/
 │   ├── main.py                 # FastAPI app, CORS, router registration
 │   ├── auth.py                 # JWT authentication
 │   ├── database.py             # PostgreSQL connection
-│   ├── models.py               # SQLAlchemy models
 │   ├── schemas.py              # Pydantic schemas
 │   ├── requirements.txt
 │   └── routers/
@@ -139,31 +142,24 @@ Dev_Dynamos_TenzorX/
 │       └── users.py            # User profile management
 │
 ├── src/
-│   ├── components/
-│   │   ├── healthcare/
-│   │   │   ├── StepInput.tsx       # Screen 1: Symptom input
-│   │   │   ├── StepCondition.tsx   # Screen 2: Clinical mapping results
-│   │   │   ├── StepTreatment.tsx   # Screen 3: Treatment pathways
-│   │   │   ├── StepHospitals.tsx   # Screen 4: Hospital selection
-│   │   │   ├── StepFinance.tsx     # Screen 5: Financial planning
-│   │   │   ├── HospitalSplitView.tsx  # Map + list split view
-│   │   │   └── Stepper.tsx
-│   │   └── ui/                 # shadcn/ui components
+│   ├── components/healthcare/
+│   │   ├── StepInput.tsx       # Screen 1: Symptom input + voice
+│   │   ├── StepCondition.tsx   # Screen 2: Clinical mapping results
+│   │   ├── StepTreatment.tsx   # Screen 3: Treatment pathways
+│   │   ├── StepHospitals.tsx   # Screen 4: Hospital selection
+│   │   ├── StepFinance.tsx     # Screen 5: Financial planning
+│   │   └── HospitalSplitView.tsx  # Map + list split view
 │   ├── lib/
-│   │   ├── api.ts              # All API calls + TypeScript interfaces
-│   │   ├── healthcare-data.ts  # Offline fallback data
-│   │   └── utils.ts
-│   ├── pages/
-│   │   ├── Index.tsx           # Main navigator flow orchestrator
-│   │   ├── Login.tsx
-│   │   ├── Signup.tsx
-│   │   └── Profile.tsx
-│   └── context/
-│       └── AuthContext.tsx     # JWT auth state
+│   │   └── api.ts              # All API calls + TypeScript interfaces
+│   └── pages/
+│       └── Index.tsx           # Main navigator flow orchestrator
 │
-└── data/
-    ├── cleaned_cghs_rates_full.csv     # CGHS procedure rates
-    └── final_hospital_directory.csv    # National hospital data
+├── data/
+│   ├── cleaned_cghs_rates_full.csv     # CGHS procedure rates
+│   └── final_hospital_directory.csv    # National hospital data
+│
+└── public/
+    └── logo.png                # CureWise logo
 ```
 
 ---
@@ -171,27 +167,25 @@ Dev_Dynamos_TenzorX/
 ## Getting Started
 
 ### Prerequisites
-
 - Python 3.10+
 - Node.js 18+
-- PostgreSQL with PostGIS extension (or Supabase project)
+- Supabase project (PostgreSQL + PostGIS)
+- Groq API key (free at [console.groq.com](https://console.groq.com))
 
-### 1. Clone the repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/pratik3847/Dev_Dynamos_TenzorX.git
 cd Dev_Dynamos_TenzorX
 ```
 
-### 2. Backend setup
+### 2. Backend
 
 ```bash
-# Create and activate virtual environment
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS/Linux
 
-# Install dependencies
 pip install -r backend/requirements.txt
 ```
 
@@ -208,40 +202,19 @@ LLM_API_BASE_URL=https://api.groq.com/openai/v1
 LLM_MODEL=llama-3.3-70b-versatile
 ```
 
-Start the backend:
-
 ```bash
 uvicorn backend.main:app --reload
+# API → http://localhost:8000
+# Docs → http://localhost:8000/docs
 ```
 
-API available at `http://localhost:8000` · Docs at `http://localhost:8000/docs`
-
-### 3. Frontend setup
+### 3. Frontend
 
 ```bash
-# Install dependencies (use legacy peer deps for react-leaflet compatibility)
 npm install --legacy-peer-deps
-
-# Start development server
 npm run dev
+# App → http://localhost:5173
 ```
-
-Frontend available at `http://localhost:5173`
-
----
-
-## Database Setup
-
-Import the hospital and CGHS procedure data into your Supabase project:
-
-```bash
-# Import CGHS procedure rates
-python backend/scripts/import_data.py
-```
-
-The database requires two main tables:
-- `public.hospitals` — national hospital directory with PostGIS `location` column
-- `public.cghs_procedures` — CGHS rate schedule with procedure codes and rates
 
 ---
 
@@ -252,45 +225,37 @@ The database requires two main tables:
 | `/api/v1/auth/signup` | POST | Register new user |
 | `/api/v1/auth/login` | POST | Login, returns JWT |
 | `/api/v1/auth/me` | GET | Get current user profile |
-| `/api/v1/diagnosis/match` | POST | Map symptoms to ICD-10 + differentials |
-| `/api/v1/clinical/pathway/{icd10}` | GET | Get treatment pathways for condition |
+| `/api/v1/diagnosis/match` | POST | Map symptoms → ICD-10 + differentials |
+| `/api/v1/clinical/pathway/{icd10}` | GET | Get treatment pathways |
 | `/api/v1/hospitals/search` | GET | Search hospitals by location/specialty |
 | `/api/v1/hospitals/nearby` | POST | Find hospitals near GPS coordinates |
-| `/api/v1/procedures/search` | GET | Search CGHS procedures |
 | `/api/v1/procedures/estimate` | POST | Calculate cost estimate |
 
-Full interactive docs: `http://localhost:8000/docs`
-
 ---
 
-## Clinical Data Sources
+## Clinical Accuracy Standards
 
-All clinical content is traceable to verified sources:
+All clinical content follows these guidelines:
 
-| Data | Source | Notes |
-|------|--------|-------|
-| Procedure costs | CGHS Rate Schedule 2023 | Official Government of India rates |
-| ICD-10 codes | NLM ClinicalTables (clinicaltables.nlm.nih.gov) | US National Library of Medicine |
-| Condition summaries | NLM MedlinePlus Connect | Free API, no key required |
-| Treatment guidelines | ICMR, WHO, NICE guidelines | Via LLM training data |
-| Hospital data | National Health Authority directory | Public dataset |
-
----
-
-## Team
-
-**Dev Dynamos** — Built for TenzorX Hackathon
+- **ICD-10 codes** — validated against NLM ClinicalTables (never generic S-codes for non-traumatic conditions)
+- **Confidence scoring** — differentials always have lower confidence than primary; <50% triggers "Refine Symptoms" CTA
+- **Treatment sequencing** — pre-op tests always before surgery; physiotherapy after surgery
+- **Cost benchmarks** — validated against CGHS 2023 rate schedule
+- **Age matrix** — <18 paediatric flag, 18–35 conservative preferred, 56+ anaesthesia risk, 70+ high surgical risk
+- **Comorbidity flags** — named reasons, not generic warnings
 
 ---
 
 ## Disclaimer
 
-CareCompass AI is a **clinical decision support tool**, not a medical device or substitute for professional medical advice. All AI-generated content is for informational purposes only. Always consult a qualified physician before making healthcare decisions.
+CureWise AI is a **clinical decision support tool**, not a medical device or substitute for professional medical advice. All AI-generated content is for informational purposes only. Always consult a qualified physician before making healthcare decisions.
 
 ---
 
 <div align="center">
 
 Built with ❤️ for accessible, transparent healthcare in India
+
+**Team Dev Dynamos · TenzorX Hackathon**
 
 </div>
